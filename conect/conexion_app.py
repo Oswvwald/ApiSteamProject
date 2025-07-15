@@ -1,14 +1,18 @@
-from psycopg2 import pool
 import os
-from dotenv import load_dotenv
+from psycopg2 import pool
 import urllib.parse as urlparse
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# Analizar la URL de conexión
-url = urlparse.urlparse(os.getenv("DATABASE_URL"))
+# Validar que la variable exista
+url_str = os.getenv("DATABASE_URL")
+if not url_str:
+    raise ValueError("DATABASE_URL no está definida en el entorno")
 
-# Extraer parámetros
+# Parsear la URL
+url = urlparse.urlparse(url_str)
+
 db_config = {
     "dbname": url.path[1:],
     "user": url.username,
