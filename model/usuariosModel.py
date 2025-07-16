@@ -29,7 +29,7 @@ def obtener_usuario_por_id(usuario_id):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT * FROM usuarios WHERE id = %s", (usuario_id,))
+        cursor.execute("SELECT * FROM usuarios WHERE id_usuarios = %s", (usuario_id,))
         row = cursor.fetchone()
         if row:
             return convertir_a_dict(cursor, [row])[0]
@@ -47,7 +47,7 @@ def crear_usuario(nombre, apellido, email, contrasena, rol):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO usuarios (nombre_usuario, apellido_usuario, email_usuario, contrasena_usuario, rol_id) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            "INSERT INTO usuarios (nombre_usuario, apellido_usuario, email_usuario, contrasena_usuario, rol_id) VALUES (%s, %s, %s, %s, %s) RETURNING id_usuarios",
             (nombre, apellido, email, contrasena, rol)
         )
         usuario_id = cursor.fetchone()[0]
