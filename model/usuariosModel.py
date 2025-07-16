@@ -1,5 +1,23 @@
 from datetime import datetime
 from conect.conexion_app import get_connection, put_connection
+import bcrypt
+
+def hash_password(password: str) -> str:
+    """
+    Hashea una contraseña usando bcrypt
+    """
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """
+    Verifica si una contraseña coincide con su hash
+    """
+    password_bytes = password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 def convertir_a_dict(cursor, rows):
     columnas = [col[0] for col in cursor.description]
@@ -46,9 +64,12 @@ def crear_usuario(nombre, apellido, email, contrasena, rol):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Hashear la contraseña antes de guardarla
+        contrasena_hasheada = hash_password(contrasena)
+        
         cursor.execute(
             "INSERT INTO usuarios (nombre_usuario, apellido_usuario, email_usuario, contrasena_usuario, rol_id) VALUES (%s, %s, %s, %s, %s) RETURNING id_usuarios",
-            (nombre, apellido, email, contrasena, rol)
+            (nombre, apellido, email, contrasena_hasheada, rol)
         )
         usuario_id = cursor.fetchone()[0]
         conn.commit()
@@ -65,9 +86,12 @@ def actualizar_usuario(usuario_id, nombre, apellido, email, contrasena, rol):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Hashear la nueva contraseña
+        contrasena_hasheada = hash_password(contrasena)
+        
         cursor.execute(
             "UPDATE usuarios SET nombre_usuario = %s, apellido_usuario = %s, email_usuario = %s, contrasena_usuario = %s, rol_id = %s WHERE id_usuarios = %s",
-            (nombre, apellido, email, contrasena, rol, usuario_id)
+            (nombre, apellido, email, contrasena_hasheada, rol, usuario_id)
         )
         conn.commit()
         return True
@@ -195,13 +219,21 @@ def login_usuario(email, contrasena):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Solo buscar por email, no por contraseña
         cursor.execute(
-            "SELECT * FROM usuarios WHERE email_usuario = %s AND contrasena_usuario = %s",
-            (email, contrasena)
+            "SELECT * FROM usuarios WHERE email_usuario = %s",
+            (email,)
         )
         row = cursor.fetchone()
         if row:
-            return convertir_a_dict(cursor, [row])[0]
+            usuario = convertir_a_dict(cursor, [row])[0]
+            # Verificar la contraseña hasheada
+            if verify_password(contrasena, usuario['contrasena_usuario']):
+                # Remover la contraseña del objeto de respuesta
+                del usuario['contrasena_usuario']
+                return usuario
+            else:
+                return None
         else:
             return None
     except Exception as e:
