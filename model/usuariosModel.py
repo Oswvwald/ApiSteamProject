@@ -219,9 +219,15 @@ def login_usuario(email, contrasena):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Solo buscar por email, no por contraseña
+        # JOIN con la tabla roles para obtener el nombre del rol
         cursor.execute(
-            "SELECT * FROM usuarios WHERE email_usuario = %s",
+            """
+            SELECT u.id_usuarios, u.nombre_usuario, u.apellido_usuario, 
+                   u.email_usuario, u.contrasena_usuario, u.rol_id, r.nombre_rol
+            FROM usuarios u 
+            LEFT JOIN roles r ON u.rol_id = r.id_rol 
+            WHERE u.email_usuario = %s
+            """,
             (email,)
         )
         row = cursor.fetchone()
@@ -229,9 +235,17 @@ def login_usuario(email, contrasena):
             usuario = convertir_a_dict(cursor, [row])[0]
             # Verificar la contraseña hasheada
             if verify_password(contrasena, usuario['contrasena_usuario']):
-                # Remover la contraseña del objeto de respuesta
-                del usuario['contrasena_usuario']
-                return usuario
+                # Crear respuesta personalizada con datos del rol
+                return {
+                    "id": usuario['id_usuarios'],
+                    "nombre": usuario['nombre_usuario'],
+                    "apellido": usuario['apellido_usuario'],
+                    "email": usuario['email_usuario'],
+                    "rol": {
+                        "id": usuario['rol_id'],
+                        "nombre": usuario['nombre_rol']
+                    }
+                }
             else:
                 return None
         else:
