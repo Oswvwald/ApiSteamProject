@@ -123,3 +123,13 @@ def eliminar_rol(rol_id: int):
             return JSONResponse(status_code=404, content={"status": 404, "message": "Rol no encontrado o no eliminado"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def cambiar_rol_usuario(usuario_id: int, nuevo_rol_id: int):
+    try:
+        cambiado = usuariosModel.cambiar_rol_usuario(usuario_id, nuevo_rol_id)
+        if cambiado:
+            return JSONResponse(status_code=200, content={"status": 200, "message": "Rol de usuario cambiado correctamente"})
+        else:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "Usuario no encontrado o rol no cambiado"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})

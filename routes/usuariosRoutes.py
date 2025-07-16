@@ -97,3 +97,7 @@ def actualizar_rol(rol_id: int, request: ActualizarRolRequest):
 @appUsuario.delete("/roles/{rol_id}", tags=["Roles"])
 def eliminar_rol(rol_id: int):
     return usuariosController.eliminar_rol(rol_id)
+
+@appUsuario.put("/usuarios/{usuario_id}/rol", tags=["Usuarios"])
+def cambiar_rol_usuario(usuario_id: int, nuevo_rol_id: int):
+    return usuariosController.cambiar_rol_usuario(usuario_id, nuevo_rol_id)

@@ -256,3 +256,21 @@ def login_usuario(email, contrasena):
     finally:
         cursor.close()
         put_connection(conn)
+        
+def cambiar_rol_usuario(usuario_id, nuevo_rol_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE usuarios SET rol_id = %s WHERE id_usuarios = %s",
+            (nuevo_rol_id, usuario_id)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error al cambiar rol de usuario: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        put_connection(conn)
