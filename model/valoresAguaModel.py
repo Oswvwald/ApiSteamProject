@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from conect.conexion_app import get_connection, put_connection
 
 def convertir_a_dict(cursor, rows):
@@ -7,7 +7,11 @@ def convertir_a_dict(cursor, rows):
     for row in rows:
         row_dict = {}
         for col, val in zip(columnas, row):
-            row_dict[col] = val.isoformat() if isinstance(val, datetime) else val
+            # Manejar tanto datetime como date
+            if isinstance(val, (datetime, date)):
+                row_dict[col] = val.isoformat()
+            else:
+                row_dict[col] = val
         resultado.append(row_dict)
     return resultado
 
