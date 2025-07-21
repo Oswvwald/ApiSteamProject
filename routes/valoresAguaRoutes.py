@@ -29,6 +29,9 @@ class FiltroFechasRequest(BaseModel):
     fecha_inicio: date
     fecha_fin: date
 
+class CambiarLocacionActualRequest(BaseModel):
+    id_locacion: int
+
 # ---------- Endpoints Locaciones ----------
 
 @appValoresAgua.get("/locaciones", tags=["Locaciones"])
@@ -94,3 +97,33 @@ def obtener_valores_por_fecha(request: FiltroFechasRequest):
         request.fecha_inicio,
         request.fecha_fin
     )
+
+# ---------- Endpoints Locación Actual ----------
+
+@appValoresAgua.get("/locacion-actual", tags=["Locación Actual"])
+def obtener_locacion_actual():
+    """
+    Obtiene la locación actualmente seleccionada
+    """
+    return valoresAguaController.obtener_locacion_actual()
+
+@appValoresAgua.put("/locacion-actual", tags=["Locación Actual"])
+def cambiar_locacion_actual(request: CambiarLocacionActualRequest):
+    """
+    Cambia la locación actualmente seleccionada
+    """
+    return valoresAguaController.cambiar_locacion_actual(request.id_locacion)
+
+@appValoresAgua.get("/locacion-actual/verificar", tags=["Locación Actual"])
+def verificar_locacion_actual():
+    """
+    Verifica si hay una locación actual configurada
+    """
+    return valoresAguaController.verificar_locacion_actual()
+
+@appValoresAgua.get("/valores-agua/actual", tags=["Valores Agua"])
+def obtener_valores_locacion_actual():
+    """
+    Obtiene todos los valores de agua de la locación actualmente seleccionada
+    """
+    return valoresAguaController.obtener_valores_locacion_actual()

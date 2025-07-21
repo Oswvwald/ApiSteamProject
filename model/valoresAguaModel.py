@@ -249,3 +249,102 @@ def obtener_valores_por_fecha(fecha_inicio, fecha_fin):
     finally:
         cursor.close()
         put_connection(conn)
+
+# ---------- LOCACIÓN ACTUAL ----------
+
+def obtener_locacion_actual():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT l.id_locacion, l.nombre_lugar, l.fecha_creacion
+            FROM locacion_actual a
+            JOIN locaciones l ON a.id_locacion = l.id_locacion
+            """
+        )
+        row = cursor.fetchone()
+        if row:
+            return convertir_a_dict(cursor, [row])[0]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error al obtener locación actual: {e}")
+        return None
+    finally:
+        cursor.close()
+        put_connection(conn)
+
+def cambiar_locacion_actual(nueva_locacion_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Verificar si existe una fila en locacion_actual
+        cursor.execute("SELECT id FROM locacion_actual WHERE id = 1")
+        row = cursor.fetchone()
+        
+        if row:
+            # Actualizar la locación existente
+            cursor.execute(
+                "UPDATE locacion_actual SET id_locacion = %s WHERE id = 1",
+                (nueva_locacion_id,)
+            )
+        else:
+            # Insertar la primera locación
+            cursor.execute(
+                "INSERT INTO locacion_actual (id, id_locacion) VALUES (1, %s)",
+                (nueva_locacion_id,)
+            )
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error al cambiar locación actual: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        put_connection(conn)
+
+def verificar_locacion_actual_existe():
+    """
+    Verifica si existe una locación actual configurada
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM locacion_actual WHERE id = 1")
+        count = cursor.fetchone()[0]
+        return count > 0
+    except Exception as e:
+        print(f"Error al verificar locación actual: {e}")
+        return False
+    finally:
+        cursor.close()
+        put_connection(conn)
+
+def obtener_valores_locacion_actual():
+    """
+    Obtiene todos los valores de agua de la locación actualmente seleccionada
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT v.id_valor, v.ph, v.solidos_disueltos, v.temperatura, 
+                   v.fecha_medicion, v.locacion_id, l.nombre_lugar
+            FROM valores_agua v
+            JOIN locaciones l ON v.locacion_id = l.id_locacion
+            JOIN locacion_actual a ON l.id_locacion = a.id_locacion
+            ORDER BY v.fecha_medicion DESC
+            """
+        )
+        rows = cursor.fetchall()
+        return convertir_a_dict(cursor, rows)
+    except Exception as e:
+        print(f"Error al obtener valores de locación actual: {e}")
+        return []
+    finally:
+        cursor.close()
+        put_connection(conn)

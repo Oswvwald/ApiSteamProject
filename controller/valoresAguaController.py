@@ -125,3 +125,47 @@ def obtener_valores_por_fecha(fecha_inicio: date, fecha_fin: date):
             return JSONResponse(status_code=404, content={"status": 404, "message": "No se encontraron valores en el rango de fechas"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+# ------- LOCACIÓN ACTUAL --------
+
+def obtener_locacion_actual():
+    try:
+        locacion = valoresAguaModel.obtener_locacion_actual()
+        if locacion:
+            return JSONResponse(status_code=200, content={"status": 200, "locacion_actual": locacion})
+        else:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "No hay locación actual configurada"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def cambiar_locacion_actual(nueva_locacion_id: int):
+    try:
+        # Verificar que la locación existe
+        locacion_existe = valoresAguaModel.obtener_locacion_por_id(nueva_locacion_id)
+        if not locacion_existe:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "La locación especificada no existe"})
+        
+        cambiado = valoresAguaModel.cambiar_locacion_actual(nueva_locacion_id)
+        if cambiado:
+            return JSONResponse(status_code=200, content={"status": 200, "message": "Locación actual cambiada correctamente"})
+        else:
+            return JSONResponse(status_code=400, content={"status": 400, "message": "No se pudo cambiar la locación actual"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def obtener_valores_locacion_actual():
+    try:
+        valores = valoresAguaModel.obtener_valores_locacion_actual()
+        if valores:
+            return JSONResponse(status_code=200, content={"status": 200, "valores_agua": valores})
+        else:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "No se encontraron valores para la locación actual"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def verificar_locacion_actual():
+    try:
+        existe = valoresAguaModel.verificar_locacion_actual_existe()
+        return JSONResponse(status_code=200, content={"status": 200, "locacion_configurada": existe})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
