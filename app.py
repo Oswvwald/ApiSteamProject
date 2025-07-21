@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from routes.usuariosRoutes import appUsuario
+from routes.valoresAguaRoutes import appValoresAgua
 
 app = FastAPI()
 
@@ -15,7 +16,8 @@ app.add_middleware(
     allow_headers=["*"],  # Permitir todos los encabezados
 )
 
-app.include_router(appUsuario)
+app.include_router(appUsuario, prefix="/api", tags=["Usuarios"])
+app.include_router(appValoresAgua, prefix="/api", tags=["Valores Agua"])
 
 #levantar el servidor
 if __name__ == "__main__":
