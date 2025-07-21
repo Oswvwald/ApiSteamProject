@@ -32,6 +32,9 @@ class FiltroFechasRequest(BaseModel):
 class CambiarLocacionActualRequest(BaseModel):
     id_locacion: int
 
+class CambiarEstadoMonitoreoRequest(BaseModel):
+    activado: bool
+
 # ---------- Endpoints Locaciones ----------
 
 @appValoresAgua.get("/locaciones", tags=["Locaciones"])
@@ -127,3 +130,33 @@ def obtener_valores_locacion_actual():
     Obtiene todos los valores de agua de la locación actualmente seleccionada
     """
     return valoresAguaController.obtener_valores_locacion_actual()
+
+# ---------- Endpoints Monitoreo ----------
+
+@appValoresAgua.get("/monitoreo/estado", tags=["Monitoreo"])
+def obtener_estado_monitoreo():
+    """
+    Obtiene el estado actual del monitoreo (activado/desactivado)
+    """
+    return valoresAguaController.obtener_estado_monitoreo()
+
+@appValoresAgua.put("/monitoreo/estado", tags=["Monitoreo"])
+def cambiar_estado_monitoreo(request: CambiarEstadoMonitoreoRequest):
+    """
+    Cambia el estado del monitoreo (activar/desactivar)
+    """
+    return valoresAguaController.cambiar_estado_monitoreo(request.activado)
+
+@appValoresAgua.put("/monitoreo/activar", tags=["Monitoreo"])
+def activar_monitoreo():
+    """
+    Activa el monitoreo de la locación actual
+    """
+    return valoresAguaController.activar_monitoreo()
+
+@appValoresAgua.put("/monitoreo/desactivar", tags=["Monitoreo"])
+def desactivar_monitoreo():
+    """
+    Desactiva el monitoreo de la locación actual
+    """
+    return valoresAguaController.desactivar_monitoreo()

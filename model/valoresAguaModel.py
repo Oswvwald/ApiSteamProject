@@ -258,7 +258,7 @@ def obtener_locacion_actual():
     try:
         cursor.execute(
             """
-            SELECT l.id_locacion, l.nombre_lugar, l.fecha_creacion
+            SELECT l.id_locacion, l.nombre_lugar, l.fecha_creacion, a.monitoreo_activado
             FROM locacion_actual a
             JOIN locaciones l ON a.id_locacion = l.id_locacion
             """
@@ -284,15 +284,15 @@ def cambiar_locacion_actual(nueva_locacion_id):
         row = cursor.fetchone()
         
         if row:
-            # Actualizar la locación existente
+            # Actualizar la locación existente (mantener el estado actual del monitoreo)
             cursor.execute(
                 "UPDATE locacion_actual SET id_locacion = %s WHERE id = 1",
                 (nueva_locacion_id,)
             )
         else:
-            # Insertar la primera locación
+            # Insertar la primera locación con monitoreo activado por defecto
             cursor.execute(
-                "INSERT INTO locacion_actual (id, id_locacion) VALUES (1, %s)",
+                "INSERT INTO locacion_actual (id, id_locacion, monitoreo_activado) VALUES (1, %s, TRUE)",
                 (nueva_locacion_id,)
             )
         
@@ -306,45 +306,49 @@ def cambiar_locacion_actual(nueva_locacion_id):
         cursor.close()
         put_connection(conn)
 
-def verificar_locacion_actual_existe():
+def cambiar_estado_monitoreo(activado: bool):
     """
-    Verifica si existe una locación actual configurada
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT COUNT(*) FROM locacion_actual WHERE id = 1")
-        count = cursor.fetchone()[0]
-        return count > 0
-    except Exception as e:
-        print(f"Error al verificar locación actual: {e}")
-        return False
-    finally:
-        cursor.close()
-        put_connection(conn)
-
-def obtener_valores_locacion_actual():
-    """
-    Obtiene todos los valores de agua de la locación actualmente seleccionada
+    Cambia solo el estado del monitoreo sin cambiar la locación
     """
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            """
-            SELECT v.id_valor, v.ph, v.solidos_disueltos, v.temperatura, 
-                   v.fecha_medicion, v.locacion_id, l.nombre_lugar
-            FROM valores_agua v
-            JOIN locaciones l ON v.locacion_id = l.id_locacion
-            JOIN locacion_actual a ON l.id_locacion = a.id_locacion
-            ORDER BY v.fecha_medicion DESC
-            """
+            "UPDATE locacion_actual SET monitoreo_activado = %s WHERE id = 1",
+            (activado,)
         )
-        rows = cursor.fetchall()
-        return convertir_a_dict(cursor, rows)
+        
+        # Verificar si se actualizó alguna fila
+        if cursor.rowcount == 0:
+            # No hay ninguna locación configurada
+            return False
+            
+        conn.commit()
+        return True
     except Exception as e:
-        print(f"Error al obtener valores de locación actual: {e}")
-        return []
+        print(f"Error al cambiar estado de monitoreo: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        put_connection(conn)
+
+def obtener_estado_monitoreo():
+    """
+    Obtiene solo el estado del monitoreo
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT monitoreo_activado FROM locacion_actual WHERE id = 1")
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error al obtener estado de monitoreo: {e}")
+        return None
     finally:
         cursor.close()
         put_connection(conn)

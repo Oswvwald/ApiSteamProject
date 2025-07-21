@@ -169,3 +169,32 @@ def verificar_locacion_actual():
         return JSONResponse(status_code=200, content={"status": 200, "locacion_configurada": existe})
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+# ------- MONITOREO --------
+
+def obtener_estado_monitoreo():
+    try:
+        estado = valoresAguaModel.obtener_estado_monitoreo()
+        if estado is not None:
+            return JSONResponse(status_code=200, content={"status": 200, "monitoreo_activado": estado})
+        else:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "No hay locación actual configurada"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def cambiar_estado_monitoreo(activado: bool):
+    try:
+        cambiado = valoresAguaModel.cambiar_estado_monitoreo(activado)
+        if cambiado:
+            estado_texto = "activado" if activado else "desactivado"
+            return JSONResponse(status_code=200, content={"status": 200, "message": f"Monitoreo {estado_texto} correctamente"})
+        else:
+            return JSONResponse(status_code=404, content={"status": 404, "message": "No hay locación actual configurada para cambiar el estado del monitoreo"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": 500, "message": f"Error interno: {str(e)}"})
+
+def activar_monitoreo():
+    return cambiar_estado_monitoreo(True)
+
+def desactivar_monitoreo():
+    return cambiar_estado_monitoreo(False)
